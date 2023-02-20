@@ -8,8 +8,8 @@ dotenv.config("./.env");
 
 const signUpController = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
+    const { name,email, password } = req.body;
+    if (!name|| !email || !password) {
       return res.send(error(400,"all feilds are required"));
     }
     const oldUser = await User.findOne({ email });
@@ -19,18 +19,19 @@ const signUpController = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
+      name,
       email,
       password: hashedPassword,
     });
-    res.send(success(200,{user}));
-  } catch (error) {
-    console.log(error);
+    res.send(success(200,"User Created"));
+  } catch (e) {
+    console.log(error(400, e.message));
   }
 };
 const loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!email || !password) {
       return res.send(error(400,"Email and password are required"));
     }
@@ -66,12 +67,12 @@ const refreshTokenController = async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_STRING);
 
-    const _id = decoded.id;
+    const _id = decoded._id;
     const accessToken = genrateWebToken({ _id });
     req._id = decoded._id;
     return res.send(success(201, { accessToken }));
-  } catch (error) { 
-    console.log(error);
+  } catch (e) { 
+    console.log(e);
     return res.send(error(400, "invaild refresh token"));
   }
 };

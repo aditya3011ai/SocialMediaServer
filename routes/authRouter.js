@@ -8,6 +8,6 @@ const {
 
 routes.post("/signup", signUpController);
 routes.post("/login", loginController);
-routes.post("/refresh", refreshTokenController);
+routes.get("/refresh", refreshTokenController);
 
 module.exports = routes;
