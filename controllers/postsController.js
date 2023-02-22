@@ -2,11 +2,6 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const { success,error } = require("../utils/responseWrapper");
 
-
-const getAllPostsController = (req, res) => {
-  return res.send(success(201, "these are posts"));
-};
-
 const createPostController = async(req, res) => {  
     try {
         const {title} = req.body;
@@ -52,5 +47,26 @@ const likeAndDislikepost = async (req, res) => {
     
 
 }
-module.exports = { getAllPostsController ,createPostController,likeAndDislikepost};
+const updatePost = async(req,res)=>{
+    try {
+    const userId = req._id;
+    const {postId,title} = req.body;
+    const post = await Post.findById(postId);
+    if(!post || !postId){
+        return res.send(error(404,"Post not found"));
+    }
+    if(post.owner.toString()!== userId){
+        return res.send(error(403,"You are Not the Owmer of this post"));
+    }
+    if(title){
+        post.title = title;
+    }
+    await post.save();
+    return res.send(success(200,post));
+    } catch (e) {
+        console.log(e);
+    }
+    
+}
+module.exports = { createPostController,likeAndDislikepost,updatePost};
 

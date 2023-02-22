@@ -1,10 +1,11 @@
 const routes = require("express").Router();
 const requireUser = require('../middleware/requireUser')
-const {getAllPostsController,createPostController,likeAndDislikepost} = require("../controllers/postsController");
+const {createPostController,likeAndDislikepost, updatePost} = require("../controllers/postsController");
 
-routes.get("/all",requireUser, getAllPostsController);
 routes.post("/",requireUser, createPostController);
 routes.post("/like",requireUser, likeAndDislikepost);
+routes.put("/",requireUser, updatePost);
+
 
 module.exports = routes;
  

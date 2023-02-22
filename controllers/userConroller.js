@@ -44,7 +44,7 @@ const getPostsOfFollowings = async(req,res)=>{
   try {
     const currentUserId = req._id;
 
-    const currentUser =await User.findById(currentUserId);
+    const currentUser = await User.findById(currentUserId);
 
     const posts = await Post.find({
       owner:{
