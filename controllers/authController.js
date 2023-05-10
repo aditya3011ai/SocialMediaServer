@@ -10,12 +10,12 @@ const signUpController = async (req, res) => {
   try {
     const { name,email, password } = req.body;
     if (!name|| !email || !password) {
-      return res.send(error(400,"all feilds are required"));
+      return res.send(error(400,"All feilds are required"));
     }
     const oldUser = await User.findOne({ email });
 
     if (oldUser) {
-      return res.send(error(400, "user already exists"));
+      return res.send(error(400, "User already exists"));
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await User.create({
@@ -23,9 +23,9 @@ const signUpController = async (req, res) => {
       email,
       password: hashedPassword,
     });
-    res.send(success(200,"User Created"));
+    return res.send(success(200,"User Created"));
   } catch (e) {
-    console.log(error(400, e.message));
+    return res.send(error(400, e.message));
   }
 };
 const loginController = async (req, res) => {
@@ -36,12 +36,12 @@ const loginController = async (req, res) => {
       return res.send(error(400,"Email and password are required"));
     }
     if (!user) {
-      return res.send(error(400, "user not exists"));
+      return res.send(error(400, "User not exists"));
     }
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.send(error(400, "password mismatch"));
+      return res.send(error(400, "Password Mismatch"));
     }
     const accessToken = genrateWebToken({ _id: user._id });
     const refreshToken = genrateRefreshToken({ _id: user._id });
@@ -51,8 +51,8 @@ const loginController = async (req, res) => {
       secure: true,
     })
     res.send(success(200, {accessToken}));
-  } catch (error) {
-    console.log(error);
+  } catch (e) {
+    return res.send(error(500,e.message));
   }
 };
 const logoutController = async (req, res) => {
@@ -95,7 +95,7 @@ const genrateWebToken = (data) => {
     });
     return token;
   } catch (error) {
-    console.log(error);
+    
   }
 };
 const genrateRefreshToken = (data) => {

@@ -16,6 +16,9 @@ const userSchema = new mongoose.Schema({
         required:true,
         type:String,
     },
+    bio:{
+        type:String,
+    },
     avatar:{
         publicId:String,
         url:String,
@@ -38,5 +41,7 @@ const userSchema = new mongoose.Schema({
             ref:'post'
         }
     ]
+},{
+    timestamps:true
 })
 module.exports = mongoose.model('user',userSchema);

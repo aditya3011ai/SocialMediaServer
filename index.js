@@ -6,11 +6,17 @@ const postRouter = require('./routes/postRouter')
 const userRouter = require('./routes/userRouter')
 const cookieParser = require('cookie-parser')
 const cors = require('cors');
+const cloudinary = require('cloudinary').v2;
 
 const app = express();
 dotenv.config('./.env');
 
-app.use(express.json());
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_SECRET_API_KEY
+});
+app.use(express.json({ limit: "10mb" }));
 app.use(cookieParser());
 app.use(cors({
     credentials:true,

@@ -1,56 +1,69 @@
 const Post = require("../models/Post");
 const User = require("../models/User");
 const { success, error } = require("../utils/responseWrapper");
+const cloudinary = require("cloudinary").v2;
+const mapPostOutput = require('../utils/Utils')
 
 const createPostController = async (req, res) => {
   try {
-    const { title } = req.body;
-    const owner = req._id;
-    if (owner) {
-      const user = await User.findById(owner);
+      const { title, postImg } = req.body;
+
+      if(!title || !postImg) {
+          return res.send(error(400, 'Caption and postImg are required'))
+      }
+      const cloudImg = await cloudinary.uploader.upload(postImg, {
+          folder: 'postImg'
+      })
+
+      const owner = req._id;
+
+      const user = await User.findById(req._id);
+
       const post = await Post.create({
-        owner,
-        title,
+          owner,
+          title,
+          image: {
+              publicId: cloudImg.public_id,
+              url: cloudImg.url
+          },
       });
+
       user.posts.push(post._id);
       await user.save();
-      return res.send(success(201, post));
-    } else {
-      return res.send(error(401, "no owner"));
-    }
+      return res.json(success(200, { post }));
   } catch (e) {
-    return res.send(error(500, e.message));
+      return res.send(error(500, e.message));
   }
 };
 const likeAndDislikepost = async (req, res) => {
   try {
-    const { postId } = req.body;
-    const currentUserId = req._id;
-    const post = await Post.findById(postId);
-    if (!post) {
-      return res.send(error(404, "Post not found"));
-    }
-    if (post.likes.includes(currentUserId)) {
-      const index = post.likes.indexOf(currentUserId);
-      post.likes.splice(index, 1);
+      const { postId } = req.body;
+      const curUserId = req._id;
 
+      const post = await Post.findById(postId).populate('owner');
+      if (!post) {
+          return res.send(error(404, "Post not found"));
+      }
+
+      if (post.likes.includes(curUserId)) {
+          const index = post.likes.indexOf(curUserId);
+          post.likes.splice(index, 1);
+      } else {
+          post.likes.push(curUserId);
+      }
       await post.save();
-      return res.send(success(200, "Post Unliked"));
-    } else {
-      post.likes.push(currentUserId);
-      await post.save();
-      return res.send(success(200, "Post Liked"));
-    }
+      return res.send(success(200, {post: mapPostOutput(post, req._id)}));
+
   } catch (e) {
-    return res.send(error(500, e.message));
+      return res.send(error(500, e.message));
   }
 };
 const updatePost = async (req, res) => {
   try {
     const userId = req._id;
     const { postId, title } = req.body;
-    if(!title){
-      return res.send(error(400,"Title is required"))
+    if (!title) {
+      return res.send(error(400, "Title is required"));
     }
     const post = await Post.findById(postId);
     if (!post || !postId) {
@@ -65,7 +78,8 @@ const updatePost = async (req, res) => {
     await post.save();
     return res.send(success(200, post));
   } catch (e) {
-    return res.send(error(500, e.message));  }
+    return res.send(error(500, e.message));
+  }
 };
 const deletePost = async (req, res) => {
   try {
@@ -89,4 +103,9 @@ const deletePost = async (req, res) => {
   }
 };
 
-module.exports = { createPostController, likeAndDislikepost, updatePost,deletePost };
+module.exports = {
+  createPostController,
+  likeAndDislikepost,
+  updatePost,
+  deletePost,
+};
