@@ -5,7 +5,7 @@ const {createPostController,likeAndDislikepost, updatePost,deletePost} = require
 routes.post("/",requireUser, createPostController);
 routes.post("/like",requireUser, likeAndDislikepost);
 routes.put("/",requireUser, updatePost);
-routes.delete("/delete",requireUser, deletePost);
+routes.post("/delete",requireUser, deletePost);
 
 
 module.exports = routes;

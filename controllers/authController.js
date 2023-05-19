@@ -23,7 +23,14 @@ const signUpController = async (req, res) => {
       email,
       password: hashedPassword,
     });
-    return res.send(success(200,"User Created"));
+    const accessToken = genrateWebToken({ _id: user._id });
+    const refreshToken = genrateRefreshToken({ _id: user._id });
+
+    res.cookie("jwt",refreshToken,{
+      httpOnly: true,
+      secure: true,
+    })
+    res.send(success(200, {accessToken}));
   } catch (e) {
     return res.send(error(400, e.message));
   }
@@ -83,7 +90,6 @@ const refreshTokenController = async (req, res) => {
     req._id = decoded._id;
     return res.send(success(201, { accessToken }));
   } catch (e) { 
-    console.log(e);
     return res.send(error(400, "invaild refresh token"));
   }
 };

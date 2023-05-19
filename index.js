@@ -28,7 +28,6 @@ app.use('/posts',postRouter)
 app.use('/user',userRouter)
 
 app.get('/', (req,res)=>{
-    res.send("hlo")
 })
 
 dbConnect();

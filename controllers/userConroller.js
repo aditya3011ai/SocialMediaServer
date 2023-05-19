@@ -67,8 +67,7 @@ const getPostsOfFollowings = async (req, res) => {
       });
    
       return res.send(success(200, {...curUser._doc, suggestions, posts}));
-  } catch (error) {
-      console.log(e);
+  } catch (e) {
       return res.send(error(500, e.message));
   }
 };
@@ -110,49 +109,55 @@ const getUserPosts = async (req, res) => {
 
       return res.send(success(200, { allUserPosts }));
   } catch (e) {
-      console.log(e);
       return res.send(error(500, e.message));
   }
 };
 const deleteUser = async(req, res) => {
   try {
-    const userId = req._id;
-    const user = await User.findById(userId);
-    await Post.deleteMany({
-      owner:userId
-    })
-    user.followers.forEach(async(follwersId)=>{
-      const follower = await User.findById(follwersId); 
-      const index = follower.followings .indexOf(userId);
-      if(index){
-      follower.followings.splice(index, 1);
-      await follower.save();
-      }
-    })
-    user.followings.forEach(async(followingId)=>{
-      const followingUser = await User.findById(followingId);
-      const index = followingUser.followers.indexOf(userId);
-      if(index){
-      followingUser.followers.splice(index, 1);
-      await followingUser.save();}
-    })
-    const allPosts = await Post.find();
-    allPosts.forEach(async(post) =>{
-      const index = post.likes.indexOf(userId);
-      if(index){
-        post.likes.splice(index,1);
-      }
-      await post.save();
-    })
-    await user.remove();
-    res.clearCookie('jwt',{
-      httpOnly:true,
-      secure:true
-    })
-    return res.send(success(200,"User deleted successfully"))
-  } catch (e) {
-    return res.send(error(500,e.message))
-  }
+        const curUserId = req._id;
+        const curUser = await User.findById(curUserId);
+
+        // delete all posts
+        await Post.deleteMany({
+            owner: curUserId,
+        });
+
+        // removed myself from followers' followings
+        curUser.followers.forEach(async (followerId) => {
+            const follower = await User.findById(followerId);
+            const index = follower.followings.indexOf(curUserId);
+            follower.followings.splice(index, 1);
+            await follower.save();
+        });
+
+        // remove myself from my followings' followers
+        curUser.followings.forEach(async (followingId) => {
+            const following = await User.findById(followingId);
+            const index = following.followers.indexOf(curUserId);
+            following.followers.splice(index, 1);
+            await following.save();
+        });
+
+        // remove myself from all likes
+        const allPosts = await Post.find();
+        allPosts.forEach(async (post) => {
+            const index = post.likes.indexOf(curUserId);
+            post.likes.splice(index, 1);
+            await post.save();
+        });
+
+        // delete user
+        await curUser.remove();
+
+        res.clearCookie("jwt", {
+            httpOnly: true,
+            secure: true,
+        });
+
+        return res.send(success(200, "user deleted"));
+    } catch (e) {
+        return res.send(error(500, e.message));
+    }
 }
 const getMyInfo = async(req, res) =>{
     try {
@@ -186,7 +191,6 @@ const updateUserProfile = async(req, res) => {
     await user.save();
     return res.send(success(200, { user }));
 } catch (e) {
-    console.log('put', e);
     return res.send(error(500, e.message));
 }
 }
@@ -207,7 +211,6 @@ const getUserProfile = async (req, res) => {
 
       return res.send(success(200, { ...user._doc, posts }));
   } catch (e) {
-      console.log('error put', e);
       return res.send(error(500, e.message));
   }
 };
