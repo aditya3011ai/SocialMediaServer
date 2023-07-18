@@ -97,7 +97,7 @@ const refreshTokenController = async (req, res) => {
 const genrateWebToken = (data) => {
   try {
     const token = jwt.sign(data, process.env.ACCESS_TOKEN_STRING, {
-      expiresIn: "15m",
+      expiresIn: "30m",
     });
     return token;
   } catch (error) {
