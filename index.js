@@ -20,7 +20,7 @@ app.use(express.json({ limit: "100mb" }));
 app.use(cookieParser());
 app.use(cors({
     credentials:true,
-    origin: process.env.BASE_URL,   
+    origin:process.env.BASE_URL,   
 }))
 
 app.use('/auth',authRouter)
